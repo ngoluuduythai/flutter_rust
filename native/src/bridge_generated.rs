@@ -42,6 +42,10 @@ pub extern "C" fn wire_rust_release_mode(port_: i64) {
 
 // Section: wire structs
 
+// Section: wrapper structs
+
+// Section: static checks
+
 // Section: allocate functions
 
 // Section: impl Wire2Api
