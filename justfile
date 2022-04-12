@@ -13,7 +13,7 @@ install_ios:
     cargo install cbindgen
     rustup target add aarch64-apple-ios	
     rustup target add x86_64-apple-ios
-    rustup target add aarch64-apple-ios-sim		
+    rustup target add aarch64-apple-ios-sim	
 
 install_window:
     rustup target add x86_64-pc-windows-gnu     # for win32-x86-64-gnu

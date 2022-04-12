@@ -60,6 +60,9 @@ class _MyHomePageState extends State<MyHomePage> {
     platform = api.platform();
     isRelease = api.rustReleaseMode();
     var c = api.scan(timeoutInSeconds: 30);
+    c.listen((event) {
+      print("xxxxx $event");
+    });
   }
 
 
