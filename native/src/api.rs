@@ -1,4 +1,3 @@
-
 use anyhow::Result;
 use std::{thread::sleep, time::Duration};
 
@@ -6,6 +5,7 @@ use flutter_rust_bridge::StreamSink;
 use onvif::discovery;
 
 use futures_util::stream::StreamExt;
+use std::net::Ipv4Addr;
 
 // This is the entry point of your Rust library.
 // When adding new code to your project, note that only items used
@@ -67,33 +67,39 @@ pub fn rust_release_mode() -> bool {
     cfg!(not(debug_assertions))
 }
 
-
-
+#[derive(Debug, Clone, Default)]
 pub struct OnvifDevice {
     pub name: Option<String>,
     pub url_string: String,
 }
 
 pub fn scan(sink: StreamSink<OnvifDevice>, timeout_in_seconds: u64) -> Result<()> {
+    println!("Start Scan");
 
-    const MAX_CONCURRENT_JUMPERS: usize = 100;
-
-   let devices = tokio::runtime::Runtime::new()
-    .unwrap()
-    .block_on( async{
-        discovery::discover(std::time::Duration::from_secs(timeout_in_seconds))
+    tokio::runtime::Runtime::new().unwrap().block_on(async {
+        discovery::discover(
+            std::time::Duration::from_secs(timeout_in_seconds),
+            Some(Ipv4Addr::new(192, 168, 1, 14)),
+        )
         .await
         .unwrap()
-        .for_each_concurrent(MAX_CONCURRENT_JUMPERS, |addr| async move {
+        .map(|addr| {
+            println!("Device found: {:#?}", addr.url.to_string());
 
-            let device = OnvifDevice { name: addr.name, url_string: addr.url.to_string() };
-            //sink.add(device);
-            println!("Device found: {:#?}", device.url_string);
-        }).await; 
+            let device = OnvifDevice {
+                name: addr.name,
+                url_string: addr.url.to_string(),
+            };
+            sink.add(device.to_owned());
+            device
+        })
+        .collect::<Vec<OnvifDevice>>()
+        .await;
     });
 
+    println!("Stop Scan");
 
-    sink.add(OnvifDevice{name: Some(String::from("test")), url_string: String::from("test")});
+
     Ok(())
 }
 
@@ -101,10 +107,7 @@ pub fn simple_adder(a: i32, b: i32) -> i32 {
     a + b
 }
 
-pub fn query(command: OnvifCommand, args: OnvifCommandArgs) {
-
-
-}
+pub fn query(command: OnvifCommand, args: OnvifCommandArgs) {}
 pub enum OnvifCommand {
     GetSystemDateAndTime,
 
@@ -137,12 +140,10 @@ pub enum OnvifCommand {
     GetAll,
 }
 
-
 pub struct OnvifCommandArgs {
     pub username: Option<String>,
 
     pub password: Option<String>,
-   
     pub uri: Option<String>,
 
     pub service_path: String,
