@@ -79,7 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: SingleChildScrollView(
+      body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
         child: Column(
@@ -99,9 +99,8 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            const Center(child: Text("You're running on")),
+            const Text("You're running on"),
             // To render the results of a Future, a FutureBuilder is used which
             // turns a Future into an AsyncSnapshot, which can be used to
             // extract the error state, the loading state and the data if
@@ -110,44 +109,42 @@ class _MyHomePageState extends State<MyHomePage> {
             // Here, the generic type that the FutureBuilder manages is
             // explicitly named, because if omitted the snapshot will have the
             // type of AsyncSnapshot<Object?>.
-            Center(
-              child: FutureBuilder<List<dynamic>>(
-                // We await two unrelated futures here, so the type has to be
-                // List<dynamic>.
-                future: Future.wait([platform, isRelease]),
-                builder: (context, snap) {
-                  final style = Theme.of(context).textTheme.headline4;
-                  if (snap.error != null) {
-                    // An error has been encountered, so give an appropriate response and
-                    // pass the error details to an unobstructive tooltip.
-                    debugPrint(snap.error.toString());
-                    return Tooltip(
-                      message: snap.error.toString(),
-                      child: Text('Unknown OS', style: style),
-                    );
-                  }
+            FutureBuilder<List<dynamic>>(
+              // We await two unrelated futures here, so the type has to be
+              // List<dynamic>.
+              future: Future.wait([platform, isRelease]),
+              builder: (context, snap) {
+                final style = Theme.of(context).textTheme.headline4;
+                if (snap.error != null) {
+                  // An error has been encountered, so give an appropriate response and
+                  // pass the error details to an unobstructive tooltip.
+                  debugPrint(snap.error.toString());
+                  return Tooltip(
+                    message: snap.error.toString(),
+                    child: Text('Unknown OS', style: style),
+                  );
+                }
 
-                  // Guard return here, the data is not ready yet.
-                  final data = snap.data;
-                  if (data == null) return const CircularProgressIndicator();
+                // Guard return here, the data is not ready yet.
+                final data = snap.data;
+                if (data == null) return const CircularProgressIndicator();
 
-                  // Finally, retrieve the data expected in the same order provided
-                  // to the FutureBuilder.future.
-                  final Platform platform = data[0];
-                  final release = data[1] ? 'Release' : 'Debug';
-                  final text = const {
-                        Platform.Android: 'Android',
-                        Platform.Ios: 'iOS',
-                        Platform.MacApple: 'MacOS with Apple Silicon',
-                        Platform.MacIntel: 'MacOS',
-                        Platform.Windows: 'Windows',
-                        Platform.Unix: 'Unix',
-                        Platform.Wasm: 'the Web',
-                      }[platform] ??
-                      'Unknown OS';
-                  return Text('$text ($release)', style: style);
-                },
-              ),
+                // Finally, retrieve the data expected in the same order provided
+                // to the FutureBuilder.future.
+                final Platform platform = data[0];
+                final release = data[1] ? 'Release' : 'Debug';
+                final text = const {
+                      Platform.Android: 'Android',
+                      Platform.Ios: 'iOS',
+                      Platform.MacApple: 'MacOS with Apple Silicon',
+                      Platform.MacIntel: 'MacOS',
+                      Platform.Windows: 'Windows',
+                      Platform.Unix: 'Unix',
+                      Platform.Wasm: 'the Web',
+                    }[platform] ??
+                    'Unknown OS';
+                return Text('$text ($release)', style: style);
+              },
             ),
             StreamBuilder<OnvifDevice>(
               stream: onvifDeviceStream,
@@ -163,22 +160,29 @@ class _MyHomePageState extends State<MyHomePage> {
                 final data = snap.data;
                 if (data != null) {
                   devices.add(data);
-                  return ListView.builder(
-                    // Let the ListView know how many items it needs to build.
-                    itemCount: devices.length,
-                    // Provide a builder function. This is where the magic happens.
-                    // Convert each item into a widget based on the type of item it is.
-                    itemBuilder: (context, index) {
-                      final device = devices[index];
 
-                      return ListTile(
-                        title:
-                            Text('Device Name: ${device.name}', style: style),
-                        subtitle: Text('Device IP: ${device.urlString}',
-                            style: style),
-                      );
-                    },
+                  return ListTile(
+                    title: Text('Device Name: ${data.name}', style: style),
+                    subtitle:
+                        Text('Device IP: ${data.urlString}', style: style),
                   );
+
+                  // return ListView.builder(
+                  //   // Let the ListView know how many items it needs to build.
+                  //   itemCount: devices.length,
+                  //   // Provide a builder function. This is where the magic happens.
+                  //   // Convert each item into a widget based on the type of item it is.
+                  //   itemBuilder: (context, index) {
+                  //     final device = devices[0];
+
+                  //     return ListTile(
+                  //       title:
+                  //           Text('Device Name: ${device.name}', style: style),
+                  //       subtitle: Text('Device IP: ${device.urlString}',
+                  //           style: style),
+                  //     );
+                  //   },
+                  //);
                 } else {
                   return Center(child: Text('No result found', style: style));
                 }
@@ -188,14 +192,13 @@ class _MyHomePageState extends State<MyHomePage> {
             //   width: 10,
             //   height: 10,
             // ),
-            Center(
-              child: TextButton(
-                onPressed: (){ 
-                  print("on Scan Click");
-                  onvifDeviceStream = api.scan(timeoutInSeconds: 10);
-                  },
-                child: Text('Scan', style: Theme.of(context).textTheme.headline4),
-              ),
+            TextButton(
+              onPressed: () async {
+                print("on Scan Click");
+                onvifDeviceStream = api.scan(timeoutInSeconds: 10);
+              },
+              child:
+                  Text('Scan', style: Theme.of(context).textTheme.headline4),
             )
           ],
         ),

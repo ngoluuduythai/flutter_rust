@@ -79,7 +79,7 @@ pub fn scan(sink: StreamSink<OnvifDevice>, timeout_in_seconds: u64) -> Result<()
     tokio::runtime::Runtime::new().unwrap().block_on(async {
         discovery::discover(
             std::time::Duration::from_secs(timeout_in_seconds),
-            Some(Ipv4Addr::new(192, 168, 1, 14)),
+            Some(Ipv4Addr::new(0, 0, 0, 0)),
         )
         .await
         .unwrap()
@@ -98,7 +98,6 @@ pub fn scan(sink: StreamSink<OnvifDevice>, timeout_in_seconds: u64) -> Result<()
     });
 
     println!("Stop Scan");
-
 
     Ok(())
 }
