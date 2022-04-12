@@ -1,3 +1,12 @@
+
+use anyhow::Result;
+use std::{thread::sleep, time::Duration};
+
+use flutter_rust_bridge::StreamSink;
+use onvif::discovery;
+
+use futures_util::stream::StreamExt;
+
 // This is the entry point of your Rust library.
 // When adding new code to your project, note that only items used
 // here will be transformed to their Dart equivalents.
@@ -56,4 +65,87 @@ pub fn platform() -> Platform {
 // and they are automatically converted to camelCase on the Dart side.
 pub fn rust_release_mode() -> bool {
     cfg!(not(debug_assertions))
+}
+
+
+
+pub struct OnvifDevice {
+    pub name: Option<String>,
+    pub url_string: String,
+}
+
+pub fn scan(sink: StreamSink<OnvifDevice>, timeout_in_seconds: u64) -> Result<()> {
+
+    const MAX_CONCURRENT_JUMPERS: usize = 100;
+
+   let devices = tokio::runtime::Runtime::new()
+    .unwrap()
+    .block_on( async{
+        discovery::discover(std::time::Duration::from_secs(timeout_in_seconds))
+        .await
+        .unwrap()
+        .for_each_concurrent(MAX_CONCURRENT_JUMPERS, |addr| async move {
+
+            let device = OnvifDevice { name: addr.name, url_string: addr.url.to_string() };
+            //sink.add(device);
+            println!("Device found: {:#?}", device.url_string);
+        }).await; 
+    });
+
+
+    sink.add(OnvifDevice{name: Some(String::from("test")), url_string: String::from("test")});
+    Ok(())
+}
+
+pub fn simple_adder(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+pub fn query(command: OnvifCommand, args: OnvifCommandArgs) {
+
+
+}
+pub enum OnvifCommand {
+    GetSystemDateAndTime,
+
+    GetCapabilities,
+
+    /// Gets the capabilities of all known ONVIF services supported by this device.
+    GetServiceCapabilities,
+
+    /// Gets RTSP URIs for all profiles, along with a summary of the video/audio streams.
+    GetStreamUris,
+
+    /// Gets JPEG URIs for all profiles
+    GetSnapshotUris,
+
+    GetHostname,
+
+    // Gets model, firmware, manufacturer and others informations related to the device.
+    GetDeviceInformation,
+
+    // Gets the PTZ status for the primary media profile.
+    GetStatus,
+
+    /// Attempts to enable a `vnd.onvif.metadata` RTSP stream with analytics.
+    EnableAnalytics,
+
+    /// Gets information about the currently enabled and supported video analytics.
+    GetAnalytics,
+
+    // Try to get any possible information
+    GetAll,
+}
+
+
+pub struct OnvifCommandArgs {
+    pub username: Option<String>,
+
+    pub password: Option<String>,
+   
+    pub uri: Option<String>,
+
+    pub service_path: String,
+
+    pub cmd: OnvifCommand,
 }

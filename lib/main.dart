@@ -59,7 +59,9 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     platform = api.platform();
     isRelease = api.rustReleaseMode();
+    var c = api.scan(timeoutInSeconds: 30);
   }
+
 
   @override
   Widget build(BuildContext context) {

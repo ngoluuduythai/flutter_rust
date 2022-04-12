@@ -11,3 +11,9 @@ crate-type = ["cdylib", "staticlib"]
 [dependencies]
 anyhow = "1"
 flutter_rust_bridge = "1"
+cqrs = "*"
+cqrs-core = "*"
+onvif = { git = "https://github.com/ngoluuduythai/onvif-rs" }
+xsd-types = { git = "https://github.com/lumeohq/xsd-parser-rs", rev = "7f3d433" }
+tokio = { version = "1", features = ["full"] }
+futures-util = "0.3.8"
